@@ -30,12 +30,10 @@ const Groups = () => {
   const [groups, setGroups] = useState([]);
   const [filteredgroups, setFilteredgroups] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRow ,setSelectedRow] = useState([]);
   
   useEffect(() => {
     fetchGroups();
-    const interval = setInterval(fetchGroups, 3000);
-
-    return () => clearInterval(interval);
   }, []);
 
   const fetchGroups = () => {
@@ -59,6 +57,32 @@ const Groups = () => {
   const handleInputChange = (event) => {
     setSearchQuery(event.target.value);
   };
+
+  const handleRowClick = (group) =>{
+    setSelectedRow(group);
+    console.log(group);
+  };
+
+
+const handleMultipleSelect = (event) => {
+  const selectedOptions = Array.from(event.target.selectedOptions).map(option => option.value);
+  if (selectedOptions.length > 0) {
+    const lastSelectedOption = selectedOptions[selectedOptions.length - 1];
+    let markUntilNext = false;
+    for (let i = 0; i < lastSelectedOption.length; i++) {
+      if (markUntilNext) {
+        lastSelectedOption[i].selected = true;
+      }
+      if (lastSelectedOption[i].value === lastSelectedOption) {
+        markUntilNext = true;
+      }
+    }
+  }
+
+  setSelectedRow(selectedOptions);
+  console.log(selectedOptions);
+};
+
   
   const groupsToDisplay = filteredgroups.length > 0 ? filteredgroups : groups || [];
 
@@ -74,16 +98,17 @@ const Groups = () => {
             <CRow className="mb-3">
                 <CFormLabel htmlFor="GroupName" className="col-sm-2 col-form-label">Group Name</CFormLabel>
                 <CCol sm={10}>
-                    <CFormInput type="text" id="GroupName" name="GroupName"/>
+                    <CFormInput type="text" id="GroupName" name="GroupName" value={selectedRow.user_group} readOnly/>
                 </CCol>
             </CRow>
             <CRow className="mb-3">
                 <CFormLabel htmlFor="userlist" className="col-sm-2 col-form-label">User List</CFormLabel>
                 <CCol sm={10}>
-                  <CFormSelect id="userlist" multiple value={[]}>
-                      {/*<option>Users 2</option>
-                      <option>Users 3</option> */}
-                    </CFormSelect> 
+                  <CFormSelect aria-label="Default select example" id="userlist" multiple value={[selectedRow.user_group]}  onChange={handleMultipleSelect}>
+                  {groupsToDisplay.map((group, index) => (
+                      <option key={index+1} value={selectedRow.user_group}>{group.user_list}</option>
+                  ))}
+                  </CFormSelect> 
                 </CCol> 
             </CRow>
             <CRow className="justify-content-center">
@@ -132,7 +157,7 @@ const Groups = () => {
                   </CTableHead>
                   <CTableBody>
                   {groupsToDisplay.map((group, index) => (
-                      <CTableRow key={index}>
+                      <CTableRow key={index} onClick={ () =>handleRowClick(group)}>
                         <CTableHeaderCell scope="row">{index + 1}</CTableHeaderCell>
                         <CTableDataCell>{group.user_group}</CTableDataCell>
                         <CTableDataCell>{group.user_list}</CTableDataCell>
