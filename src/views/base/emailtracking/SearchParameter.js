@@ -1,6 +1,6 @@
 import React from 'react';
 import axios from 'axios';
-import { cilTrash, cilFilter, cilMagnifyingGlass } from '@coreui/icons';
+import { cilMediaSkipForward, cilFilter, cilMagnifyingGlass } from '@coreui/icons';
 import {
   CButton,
   CCard,
@@ -267,7 +267,7 @@ class SearchParameter extends React.Component {
                         <CTableDataCell>{item.message}</CTableDataCell>
                         <CTableDataCell>{item.user_group}</CTableDataCell>
                         <CTableDataCell>
-                          <CButton><CIcon icon={cilTrash} /></CButton>
+                          <CButton><CIcon icon={cilMediaSkipForward} /></CButton>
                         </CTableDataCell>
                       </CTableRow>
                     ))}

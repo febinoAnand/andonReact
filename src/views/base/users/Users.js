@@ -1,5 +1,6 @@
-import React from 'react'
-import { cilTrash, cilFilter, cilMagnifyingGlass } from '@coreui/icons';
+import React, { useState, useEffect }  from 'react'
+import axios from 'axios';
+import { cilMediaSkipForward, cilFilter, cilMagnifyingGlass } from '@coreui/icons';
 import { useNavigate } from 'react-router-dom';
 import {
     CButton,
@@ -20,14 +21,49 @@ import {
     CTableRow,
   } from '@coreui/react'
 import CIcon from '@coreui/icons-react';
+import BaseURL from 'src/assets/contants/BaseURL';
 
 const Users = () => {
   const navigate = useNavigate();
+  const [users, setUsers] = useState([]);
+  const [filteredusers, setFilteredusers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
   
   const handleRowClick = () => {
     navigate("/users/usersubpage");
   };
+
+  useEffect(() => {
+    fetchUsers();
+    const interval = setInterval(fetchUsers, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchUsers = () => {
+    axios.get(BaseURL + 'EmailTracking/useremailtracking')
+      .then(response => {
+        console.log(response.data);
+        setUsers(response.data);
+      })
+      .catch(error => {
+        console.error('Error fetching users:', error);
+      });
+  };
+  const handleSearch = () => {
+    const filteredusers = users.filter(user =>
+      user.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.message.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredusers(filteredusers);
+  };
+
+  const handleInputChange = (event) => {
+    setSearchQuery(event.target.value);
+  };
   
+  const usersToDisplay = filteredusers.length > 0 ? filteredusers : users;
+
   return (
     <>
      <CRow>
@@ -52,11 +88,13 @@ const Users = () => {
             <CInputGroup className="flex-nowrap mt-3 col-sg-3">
                 <CInputGroupText id="addon-wrapping"><CIcon icon={cilMagnifyingGlass}/></CInputGroupText>
                 <CFormInput
-                  placeholder="Username"
-                  aria-label="Username"
+                  placeholder="Search by Subject or Message"
+                  aria-label="Search"
                   aria-describedby="addon-wrapping"
+                  value={searchQuery}
+                  onChange={handleInputChange}
                 />
-                <CButton type="button" color="secondary"  id="button-addon2">
+                <CButton type="button" color="secondary" onClick={handleSearch} id="button-addon2">
                   Search
                 </CButton>
                 <CButton color="primary">
@@ -85,88 +123,19 @@ const Users = () => {
                   </CTableRow>
                 </CTableHead>
                 <CTableBody>
-                  <CTableRow  onClick={handleRowClick}>
-                    <CTableHeaderCell scope="row">1</CTableHeaderCell>
-                    <CTableDataCell>Anandkumar</CTableDataCell>
-                    <CTableDataCell>+91-xxxxxxxxx</CTableDataCell>
-                    <CTableDataCell>Richianand1990@gmail.com</CTableDataCell>
-                    <CTableDataCell>Manager</CTableDataCell>
-                    <CTableDataCell><CFormCheck/></CTableDataCell>
-                    <CTableDataCell>
-                      <CButton><CIcon icon={cilTrash} /></CButton>
-                    </CTableDataCell>
-                    
-                    
-                 
-                   
-                    
-                    
-                  </CTableRow>
-                  <CTableRow  onClick={handleRowClick}>
-                  <CTableHeaderCell scope="row">2</CTableHeaderCell>
-                    <CTableDataCell>Kumar</CTableDataCell>
-                    <CTableDataCell>+91-xxxxxxxxx</CTableDataCell>
-                    <CTableDataCell>Richianand1990@gmail.com</CTableDataCell>
-                    <CTableDataCell>Technician</CTableDataCell>
-                    <CTableDataCell><CFormCheck/></CTableDataCell>
-                    <CTableDataCell>
-                      <CButton><CIcon icon={cilTrash} /></CButton>
-                    </CTableDataCell>
-                    
-                  </CTableRow>
-                  <CTableRow  onClick={handleRowClick}>
-                  <CTableHeaderCell scope="row">3</CTableHeaderCell>
-                    <CTableDataCell>Anand</CTableDataCell>
-                    <CTableDataCell>+91-xxxxxxxxx</CTableDataCell>
-                    <CTableDataCell>Richianand1990@gmail.com</CTableDataCell>
-                    <CTableDataCell>CEO</CTableDataCell>
-                    <CTableDataCell><CFormCheck/></CTableDataCell>
-                    <CTableDataCell>
-                      <CButton><CIcon icon={cilTrash} /></CButton>
-                    </CTableDataCell>
-                   
-                    
-                  </CTableRow>
-                  <CTableRow  onClick={handleRowClick}>
-                  <CTableHeaderCell scope="row">4</CTableHeaderCell>
-                    <CTableDataCell>Anand</CTableDataCell>
-                    <CTableDataCell>+91-xxxxxxxxx</CTableDataCell>
-                    <CTableDataCell>Richianand1990@gmail.com</CTableDataCell>
-                    <CTableDataCell>CEO</CTableDataCell>
-                    <CTableDataCell><CFormCheck/></CTableDataCell>
-                    <CTableDataCell>
-                      <CButton><CIcon icon={cilTrash} /></CButton>
-                    </CTableDataCell>
-                   
-                    
-                  </CTableRow>
-                  <CTableRow  onClick={handleRowClick}>
-                  <CTableHeaderCell scope="row">5</CTableHeaderCell>
-                    <CTableDataCell>Anand</CTableDataCell>
-                    <CTableDataCell>+91-xxxxxxxxx</CTableDataCell>
-                    <CTableDataCell>Richianand1990@gmail.com</CTableDataCell>
-                    <CTableDataCell>CEO</CTableDataCell>
-                    <CTableDataCell><CFormCheck/></CTableDataCell>
-                    <CTableDataCell>
-                      <CButton><CIcon icon={cilTrash} /></CButton>
-                    </CTableDataCell>
-                   
-                    
-                  </CTableRow>
-                  <CTableRow  onClick={handleRowClick}>
-                  <CTableHeaderCell scope="row">6</CTableHeaderCell>
-                    <CTableDataCell>Anand</CTableDataCell>
-                    <CTableDataCell>+91-xxxxxxxxx</CTableDataCell>
-                    <CTableDataCell>Richianand1990@gmail.com</CTableDataCell>
-                    <CTableDataCell>CEO</CTableDataCell>
+                {usersToDisplay.map((user, index) => (
+                  <CTableRow key={index} onClick={handleRowClick}>
+                    <CTableHeaderCell scope="row">{index + 1}</CTableHeaderCell>
+                    <CTableDataCell>{user.user}</CTableDataCell>
+                    <CTableDataCell>{user.mobile}</CTableDataCell>
+                    <CTableDataCell>{user.email}</CTableDataCell>
+                    <CTableDataCell>{user.designation}</CTableDataCell>
                     <CTableDataCell><CFormCheck /></CTableDataCell>
                     <CTableDataCell>
-                      <CButton><CIcon icon={cilTrash} /></CButton>
+                      <CButton><CIcon icon={cilMediaSkipForward} /></CButton>
                     </CTableDataCell>
-                   
-                    
                   </CTableRow>
-                  
+                ))}
                 </CTableBody>
               </CTable>
             

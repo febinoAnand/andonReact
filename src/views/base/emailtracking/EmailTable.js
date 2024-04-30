@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { cilTrash, cilFilter, cilMagnifyingGlass } from '@coreui/icons';
+import { cilMediaSkipForward, cilFilter, cilMagnifyingGlass } from '@coreui/icons';
 import {
   CButton,
   CCard,
@@ -23,14 +23,11 @@ import { NavLink } from 'react-router-dom'
 
 import CIcon from '@coreui/icons-react';
 import BaseURL from 'src/assets/contants/BaseURL';
-import { useNavigate } from 'react-router-dom';
 
 const EmailTable = () => {
-  const navigate = useNavigate();
   const [emails, setEmails] = useState([]);
   const [filteredEmails, setFilteredEmails] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     fetchEmails();
@@ -49,17 +46,6 @@ const EmailTable = () => {
       });
   };
 
-  const handleDelete = (emailId) => {
-    axios.delete(BaseURL + 'EmailTracking/inbox')
-      .then(response => {
-        const updatedEmails = emails.filter(email => email.id !== emailId);
-        setEmails(updatedEmails);
-        setSuccessMessage('Deleted successfully');
-      })
-      .catch(error => {
-        console.error('Error deleting email:', error);
-      });
-  };
 
   const handleSearch = () => {
     const filteredEmails = emails.filter(email =>
@@ -73,19 +59,11 @@ const EmailTable = () => {
     setSearchQuery(event.target.value);
   };
 
-  const handleRowClick = (emailId) => {
-    navigate("/emailtracking/emailsubpage/?emailid=" + emailId);
-  };
 
   const emailsToDisplay = filteredEmails.length > 0 ? filteredEmails : emails;
 
   return (
     <>
-      {successMessage && (
-        <div className="alert alert-success" role="alert">
-          {successMessage}
-        </div>
-      )}
       <CRow>
         <CCol xs={12}>
           <CCard className="mb-4">
@@ -124,7 +102,6 @@ const EmailTable = () => {
                   {emailsToDisplay.map((email, index) => (
                     <CTableRow key={index}>
                     {/* <CTableRow key={index} onClick={() => handleRowClick(email.id)}> */}
-                      <CNavLink to={"/emailtracking/emailsubpage/?emailid=" + email.id} component={NavLink}>
                       
                     
                       <CTableHeaderCell scope="row">{index + 1}</CTableHeaderCell>
@@ -133,9 +110,8 @@ const EmailTable = () => {
                       <CTableDataCell>{email.subject}</CTableDataCell>
                       <CTableDataCell>{email.message}</CTableDataCell>
                       <CTableDataCell>
-                        <CButton onClick={() => handleDelete(email.id)}><CIcon icon={cilTrash} /></CButton>
+                      <CButton><CNavLink to={"/emailtracking/emailsubpage/?emailid=" + email.id} component={NavLink}><CIcon icon={cilMediaSkipForward} /></CNavLink></CButton>
                       </CTableDataCell>
-                      </CNavLink>
                     </CTableRow>
                   ))}
                 </CTableBody>
