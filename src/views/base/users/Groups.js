@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useState, useEffect }  from 'react'
 import BaseURL from 'src/assets/contants/BaseURL';
-import { cilTrash, cilFilter, cilMagnifyingGlass } from '@coreui/icons';
+import { cilMediaSkipForward, cilFilter, cilMagnifyingGlass } from '@coreui/icons';
 
 import {
     CButton,
@@ -8,7 +8,6 @@ import {
     CCardBody,
     CCardHeader,
     CCol,
-    CForm,
     // CFormCheck,
     CFormInput,
     CFormLabel,
@@ -27,10 +26,42 @@ import CIcon from '@coreui/icons-react';
 import axios from 'axios';
 
 
+const Groups = () => {
+  const [groups, setGroups] = useState([]);
+  const [filteredgroups, setFilteredgroups] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  useEffect(() => {
+    fetchGroups();
+    const interval = setInterval(fetchGroups, 3000);
 
-class Groups extends React.Component{
+    return () => clearInterval(interval);
+  }, []);
 
-  render(){
+  const fetchGroups = () => {
+    axios.get(BaseURL + 'EmailTracking/groupemailtracking')
+      .then(response => {
+        console.log(response.data);
+        setGroups(response.data);
+      })
+      .catch(error => {
+        console.error('Error fetching users:', error);
+      });
+  };
+  const handleSearch = () => {
+    const filteredgroups = groups.filter(group =>
+      group.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      group.message.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredgroups(filteredgroups);
+  };
+
+  const handleInputChange = (event) => {
+    setSearchQuery(event.target.value);
+  };
+  
+  const groupsToDisplay = filteredgroups.length > 0 ? filteredgroups : groups || [];
+
     return (
       <>
       <CRow>
@@ -73,11 +104,13 @@ class Groups extends React.Component{
             <CInputGroup className="flex-nowrap mt-3 col-sg-3">
                 <CInputGroupText id="addon-wrapping"><CIcon icon={cilMagnifyingGlass}/></CInputGroupText>
                 <CFormInput
-                  placeholder="Username"
-                  aria-label="Username"
+                  placeholder="Search by Subject or Message"
+                  aria-label="Search"
                   aria-describedby="addon-wrapping"
+                  value={searchQuery}
+                  onChange={handleInputChange}
                 />
-                <CButton type="button" color="secondary"  id="button-addon2">
+                <CButton type="button" color="secondary" onClick={handleSearch} id="button-addon2">
                   Search
                 </CButton>
                 <CButton color="primary">
@@ -98,15 +131,17 @@ class Groups extends React.Component{
                     </CTableRow>
                   </CTableHead>
                   <CTableBody>
-                      <CTableRow>
-                        <CTableHeaderCell scope="row">1</CTableHeaderCell>
-                        <CTableDataCell>Operators</CTableDataCell>
-                        <CTableDataCell>ram,ravi,raja,...</CTableDataCell>
-                        <CTableDataCell>5</CTableDataCell>
+                  {groupsToDisplay.map((group, index) => (
+                      <CTableRow key={index}>
+                        <CTableHeaderCell scope="row">{index + 1}</CTableHeaderCell>
+                        <CTableDataCell>{group.user_group}</CTableDataCell>
+                        <CTableDataCell>{group.user_list}</CTableDataCell>
+                        <CTableDataCell>{group.user_list_count}</CTableDataCell>
                         <CTableDataCell>
-                          <CButton><CIcon icon={cilTrash} /></CButton>
+                          <CButton><CIcon icon={cilMediaSkipForward} /></CButton>
                         </CTableDataCell>
                       </CTableRow>
+                  ))}
                   </CTableBody>
                 </CTable>
                 <CRow className="justify-content-center">
@@ -121,7 +156,6 @@ class Groups extends React.Component{
 
       </>
     )
-  }
 }
 
 export default Groups

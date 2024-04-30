@@ -1,7 +1,7 @@
 import React, { useState, useEffect }  from 'react'
 import axios from 'axios';
 import { cilMediaSkipForward, cilFilter, cilMagnifyingGlass } from '@coreui/icons';
-import { useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom'
 import {
     CButton,
     CCard,
@@ -13,6 +13,7 @@ import {
     CInputGroup,
     CInputGroupText,
     CRow,
+    CNavLink,
     CTable,
     CTableBody,
     CTableDataCell,
@@ -24,15 +25,10 @@ import CIcon from '@coreui/icons-react';
 import BaseURL from 'src/assets/contants/BaseURL';
 
 const Users = () => {
-  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [filteredusers, setFilteredusers] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   
-  const handleRowClick = () => {
-    navigate("/users/usersubpage");
-  };
-
   useEffect(() => {
     fetchUsers();
     const interval = setInterval(fetchUsers, 3000);
@@ -124,7 +120,7 @@ const Users = () => {
                 </CTableHead>
                 <CTableBody>
                 {usersToDisplay.map((user, index) => (
-                  <CTableRow key={index} onClick={handleRowClick}>
+                  <CTableRow key={index}>
                     <CTableHeaderCell scope="row">{index + 1}</CTableHeaderCell>
                     <CTableDataCell>{user.user}</CTableDataCell>
                     <CTableDataCell>{user.mobile}</CTableDataCell>
@@ -132,7 +128,7 @@ const Users = () => {
                     <CTableDataCell>{user.designation}</CTableDataCell>
                     <CTableDataCell><CFormCheck /></CTableDataCell>
                     <CTableDataCell>
-                      <CButton><CIcon icon={cilMediaSkipForward} /></CButton>
+                    <CButton><CNavLink to={"/users/usersubpage"} component={NavLink}><CIcon icon={cilMediaSkipForward} /></CNavLink></CButton>
                     </CTableDataCell>
                   </CTableRow>
                 ))}
