@@ -18,19 +18,29 @@ class Settings extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            id:'',
+            id: '',
             sid: '',
-            auth_token: ''
+            auth_token: '',
+            token: localStorage.getItem('token') || '',
         };
     }
 
     componentDidMount() {
-        axios.get(BaseURL+'smsgateway/setting/')
+        this.fetchSettings();
+    }
+
+    fetchSettings = () => {
+        const { token } = this.state;
+
+        axios.get(BaseURL + 'smsgateway/setting/', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
             .then(response => {
                 const settings = response.data[0];
                 if (settings) {
                     const { id, sid, auth_token } = settings;
-                    console.log(settings);
                     this.setState({ id, sid, auth_token });
                 } else {
                     console.error('Empty response data.');
@@ -41,14 +51,18 @@ class Settings extends Component {
                 console.error('Error fetching settings:', error);
                 toast.error('Failed to fetch settings.');
             });
-    }     
+    }
 
     handleSubmit = (event) => {
         event.preventDefault();
-        
-        const { id, sid, auth_token } = this.state;
-    
-        axios.put(`${BaseURL}smsgateway/setting/${id}/`, { sid, auth_token })
+
+        const { id, sid, auth_token, token } = this.state;
+
+        axios.put(`${BaseURL}smsgateway/setting/${id}/`, { sid, auth_token }, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
             .then(response => {
                 console.log(response);
                 toast.success('Settings updated successfully!');
@@ -57,7 +71,7 @@ class Settings extends Component {
                 console.error('Error updating settings:', error);
                 toast.error('Failed to update settings.');
             });
-    }    
+    }
 
     render() {
         const { sid, auth_token } = this.state;

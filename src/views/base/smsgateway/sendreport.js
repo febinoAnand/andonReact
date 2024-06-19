@@ -5,7 +5,6 @@ import {
     CCardBody,
     CCardHeader,
     CCol,
-    CFormCheck,
     CRow,
     CTable,
     CTableBody,
@@ -20,18 +19,28 @@ class SendReport extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            reports: []
+            reports: [],
+            token: localStorage.getItem('token') || '',
         };
     }
 
     componentDidMount() {
-        axios.get(BaseURL+'smsgateway/sendreport/')
-            .then(response => {
-                this.setState({ reports: response.data.reverse() });
-            })
-            .catch(error => {
-                console.error('Error fetching reports:', error);
-            });
+        this.fetchReports();
+    }
+
+    fetchReports = () => {
+        const { token } = this.state;
+        axios.get(BaseURL + 'smsgateway/sendreport/', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+        .then(response => {
+            this.setState({ reports: response.data.reverse() });
+        })
+        .catch(error => {
+            console.error('Error fetching reports:', error);
+        });
     }
 
     render() {
@@ -59,7 +68,8 @@ class SendReport extends React.Component {
                                         </CTableRow>
                                     </CTableHead>
                                     <CTableBody>
-                                        {reports.map((report, index) => (
+                                    {reports.length > 0 ? (
+                                        reports.map((report, index) => (
                                             <CTableRow key={index}>
                                                 <CTableDataCell>{index + 1}</CTableDataCell>
                                                 <CTableDataCell>{report.date}</CTableDataCell>
@@ -73,7 +83,14 @@ class SendReport extends React.Component {
                                                     </span>
                                                 </CTableDataCell>
                                             </CTableRow>
-                                        ))}
+                                        ))
+                                    ) : (
+                                      <CTableRow>
+                                        <CTableDataCell colSpan="7" className="text-center">
+                                          No data available
+                                        </CTableDataCell>
+                                      </CTableRow>
+                                    )}
                                     </CTableBody>
                                 </CTable>
                             </CCardBody>

@@ -49,7 +49,6 @@ class Trigger extends React.Component {
     visibleAdd: false,
     triggers: [],
     parameterFields: [],
-    selectedUsers: [],
     selectedTrigger: null,
     operator: '',
     value: '',
@@ -58,7 +57,6 @@ class Trigger extends React.Component {
     newfilter: [],
     newlyAddedFilters: [],
     parameterFilterDetails: [],
-    newTrigger:'',
     selectedUsers: [],
     newTrigger: {
       parameter_filter_list_details: {
@@ -68,6 +66,18 @@ class Trigger extends React.Component {
       },
     },
   };
+
+  getTokenFromLocalStorage = () => {
+    return localStorage.getItem('token');
+  };
+
+  axiosInstance = axios.create({
+    baseURL: BaseURL,
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${this.getTokenFromLocalStorage()}`
+    }
+  });
 
   //my function 
   updateGroupList = (name)=>{
@@ -596,7 +606,8 @@ handleSave = async () => {
                     </CTableRow>
                   </CTableHead>
                   <CTableBody>
-                    {triggers.map((trigger, index) => (
+                  {triggers.length > 0 ? (
+                    triggers.map((trigger, index) => (
                       <CTableRow key={trigger.id}>
                         <CTableHeaderCell>{index + 1}</CTableHeaderCell>
                         <CTableDataCell>{trigger.trigger_name}</CTableDataCell>
@@ -636,7 +647,14 @@ handleSave = async () => {
                           </div>
                         </CTableDataCell>
                       </CTableRow>
-                    ))}
+                    ))
+                  ) : (
+                    <CTableRow>
+                      <CTableDataCell colSpan="6" className="text-center">
+                        No data available
+                      </CTableDataCell>
+                    </CTableRow>
+                  )}
                   </CTableBody>
                 </CTable>
               </CCardBody>

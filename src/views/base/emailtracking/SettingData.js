@@ -30,7 +30,8 @@ class SettingData extends React.Component {
             errors: {},
             successMessage: '',
             emailList: [],
-            inputValue: ''
+            inputValue: '',
+            token: localStorage.getItem('token') || '',
         };
     }
 
@@ -40,7 +41,12 @@ class SettingData extends React.Component {
     }
 
     fetchEmailData() {
-        axios.get(BaseURL + 'emailtracking/email_ids/')
+        const { token } = this.state;
+        axios.get(BaseURL + 'emailtracking/email_ids/', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
             .then(response => {
                 const emailList = response.data;
                 this.setState({ emailList });
@@ -52,13 +58,17 @@ class SettingData extends React.Component {
     }
 
     handleAdd = () => {
-        const { inputValue } = this.state;
+        const { inputValue, token } = this.state;
         if (inputValue.trim() !== '') {
             const emailData = {
                 email: inputValue,
                 active: true
             };
-            axios.post(BaseURL + "emailtracking/email_ids/", emailData)
+            axios.post(BaseURL + "emailtracking/email_ids/", emailData, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
                 .then(response => {
                     console.log('Email added successfully:', response.data);
                     toast.success('Email added successfully');
@@ -76,12 +86,17 @@ class SettingData extends React.Component {
     };
 
     handleToggleEmail = (email) => {
+        const { token } = this.state;
         const updatedEmail = {
             ...email,
             active: !email.active
         };
 
-        axios.put(`${BaseURL}emailtracking/email_ids/${email.id}/`, updatedEmail)
+        axios.put(`${BaseURL}emailtracking/email_ids/${email.id}/`, updatedEmail, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
             .then(response => {
                 console.log('Email updated successfully:', response.data);
                 toast.success('Email updated successfully');
@@ -94,7 +109,12 @@ class SettingData extends React.Component {
     };
 
     fetchSettings() {
-        axios.get(BaseURL + 'emailtracking/setting/')
+        const { token } = this.state;
+        axios.get(BaseURL + 'emailtracking/setting/', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
             .then(response => {
                 const data = response.data[0];
                 if (data) {
@@ -135,33 +155,29 @@ class SettingData extends React.Component {
 
     handleSubmit = (e) => {
         e.preventDefault();
-        const errors = this.validate();
-        if (Object.keys(errors).length === 0) {
-            console.log('Submitted data:', this.state);
+        const { id, host, port, username, password, checkinterval, checkstatus, token } = this.state;
+        const data = {
+            id,
+            host,
+            port: parseInt(port),
+            username,
+            password,
+            checkinterval: checkinterval !== '' ? parseInt(checkinterval) : null,
+            checkstatus,
+        };
 
-            const { id, host, port, username, password, checkinterval, checkstatus } = this.state;
-            const data = {
-                id,
-                host,
-                port: parseInt(port),
-                username,
-                password,
-                checkinterval: checkinterval !== '' ? parseInt(checkinterval) : null,
-                checkstatus,
-            };
-
-            axios.put(`${BaseURL}emailtracking/setting/${id}/`, data)
-            .then(() => {
-                this.setState({ successMessage: 'Settings updated successfully', errors: {} });
-            })
-            .catch(error => {
-                console.error('Error updating settings:', error);
-                toast.error('Failed to update settings');
-            });
-        } else {
-            this.setState({ errors });
-            console.log('Validation errors:', errors);
-        }
+        axios.put(`${BaseURL}emailtracking/setting/${id}/`, data, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+        .then(() => {
+            this.setState({ successMessage: 'Settings updated successfully', errors: {} });
+        })
+        .catch(error => {
+            console.error('Error updating settings:', error);
+            toast.error('Failed to update settings');
+        });
     };
 
     validate = () => {

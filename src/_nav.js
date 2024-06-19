@@ -2,7 +2,7 @@ import React from 'react'
 import CIcon from '@coreui/icons-react'
 import {
   cilCursor,
-  cilMonitor,
+  // cilMonitor,
   cilNotes,
   cilPuzzle,
   cilSpeedometer,
@@ -43,13 +43,13 @@ import {
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
 
 const _nav = [
-  {
-    component: CNavItem,
-    name: 'Live Dashboard',
-    to: '/live',
-    icon: <CIcon icon={cilMonitor} customClassName="nav-icon" />
+  // {
+  //   component: CNavItem,
+  //   name: 'Live Dashboard',
+  //   to: '/live',
+  //   icon: <CIcon icon={cilMonitor} customClassName="nav-icon" />
    
-  },
+  // },
   {
     component: CNavItem,
     name: 'Data Dashboard',

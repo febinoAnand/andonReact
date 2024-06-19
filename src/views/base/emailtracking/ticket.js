@@ -31,11 +31,21 @@ class Ticket extends Component {
   }
 
   async componentDidMount() {
-    const responseFields = await axios.get(BaseURL + "emailtracking/parameter/");
-    this.setState({ fields: responseFields.data });
+    const token = localStorage.getItem('token');
+    const axiosConfig = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
 
-    const responseTickets = await axios.get(BaseURL + "emailtracking/ticket/");
-    this.setState({ ticketData: responseTickets.data.reverse() });
+    try {
+      const responseFields = await axios.get(BaseURL + "emailtracking/parameter/", axiosConfig);
+      this.setState({ fields: responseFields.data });
+      const responseTickets = await axios.get(BaseURL + "emailtracking/ticket/", axiosConfig);
+      this.setState({ ticketData: responseTickets.data.reverse() });
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
   }
 
   handleSearchChange = (event) => {

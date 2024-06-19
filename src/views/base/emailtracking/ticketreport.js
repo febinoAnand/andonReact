@@ -35,7 +35,12 @@ class TicketReport extends React.Component {
   }
 
   fetchTickets = () => {
-    axios.get(BaseURL + "emailtracking/report/")
+    const token = localStorage.getItem('token');
+    axios.get(BaseURL + "emailtracking/report/", {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
       .then(response => {
         const reversedData = response.data.reverse();
         this.setState({
