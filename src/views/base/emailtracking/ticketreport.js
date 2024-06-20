@@ -16,6 +16,8 @@ import {
   CTableHeaderCell,
   CTableRow,
 } from '@coreui/react';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import BaseURL from 'src/assets/contants/BaseURL';
 
 class TicketReport extends React.Component {
@@ -24,7 +26,7 @@ class TicketReport extends React.Component {
     this.state = {
       tickets: [],
       filteredTickets: [],
-      searchQuery: '',
+      searchTerm: '',
     };
   }
 
@@ -32,32 +34,73 @@ class TicketReport extends React.Component {
     this.fetchTickets();
   }
 
-  fetchTickets() {
-    axios
-      .get(BaseURL + 'emailtracking/ticket/')
-      .then((response) => {
-        const reversedTickets = response.data.slice().reverse();
-        this.setState({ tickets: reversedTickets, filteredTickets: reversedTickets });
+  fetchTickets = () => {
+    const token = localStorage.getItem('token');
+    axios.get(BaseURL + "emailtracking/report/", {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+      .then(response => {
+        const reversedData = response.data.reverse();
+        this.setState({
+          tickets: reversedData,
+          filteredTickets: reversedData,
+        });
       })
-      .catch((error) => {
+      .catch(error => {
         console.error('Error fetching tickets:', error);
       });
   }
-  
 
-  handleSearchChange = (event) => {
-    const searchQuery = event.target.value;
+  handleSearchChange = (e) => {
+    const searchTerm = e.target.value.toLowerCase();
     const { tickets } = this.state;
 
-    const filteredTickets = tickets.filter((ticket) =>
-      ticket.ticketname.toLowerCase().includes(searchQuery.toLowerCase())
+    const filteredTickets = tickets.filter(ticket =>
+      ticket.date.toLowerCase().includes(searchTerm) ||
+      ticket.time.toLowerCase().includes(searchTerm) ||
+      ticket.ticket.ticketname.toLowerCase().includes(searchTerm) ||
+      ticket.active_trigger.trigger_name.toLowerCase().includes(searchTerm) ||
+      ticket.actual_value.toLowerCase().includes(searchTerm) ||
+      ticket.active_trigger.users_to_send.some(user =>
+        user.username.toLowerCase().includes(searchTerm)
+      )
     );
 
-    this.setState({ searchQuery, filteredTickets });
-  };
+    this.setState({ filteredTickets, searchTerm });
+  }
+
+  handleDownloadPDF = () => {
+    const { filteredTickets } = this.state;
+    const doc = new jsPDF();
+
+    const tableColumn = ["Sl.No", "Date", "Time", "Ticket", "Rule Engine", "Actual Value", "Send to User"];
+    const tableRows = [];
+
+    filteredTickets.forEach((ticket, index) => {
+      const ticketData = [
+        index + 1,
+        ticket.date,
+        ticket.time,
+        ticket.ticket.ticketname,
+        ticket.active_trigger.trigger_name,
+        ticket.actual_value,
+        ticket.active_trigger.users_to_send.map(user => user.username).join(', ')
+      ];
+      tableRows.push(ticketData);
+    });
+
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+    });
+
+    doc.save("tickets_report.pdf");
+  }
 
   render() {
-    const { filteredTickets, searchQuery } = this.state;
+    const { filteredTickets, searchTerm } = this.state;
 
     return (
       <>
@@ -65,16 +108,16 @@ class TicketReport extends React.Component {
           <CCol xs={12}>
             <CCard className="mb-4">
               <CCardHeader>
-                <strong>TICKETS REPORT</strong>
+                <strong> REPORT</strong>
               </CCardHeader>
               <CCardBody>
                 <CCol md={4}>
                   <CInputGroup className="flex-nowrap mt-3 mb-4">
                     <CFormInput
-                      placeholder="Search by Ticket Name"
+                      placeholder="Search by Date, Time, Ticket, Rule Engine, Actual Value, Send to User"
                       aria-label="Search"
                       aria-describedby="addon-wrapping"
-                      value={searchQuery}
+                      value={searchTerm}
                       onChange={this.handleSearchChange}
                     />
                     <CButton type="button" color="secondary" id="button-addon2">
@@ -82,47 +125,51 @@ class TicketReport extends React.Component {
                     </CButton>
                   </CInputGroup>
                 </CCol>
-                <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
+                <div id="pdf-content" style={{ maxHeight: '600px', overflowY: 'auto' }}>
                   <CTable striped hover>
                     <CTableHead color='dark'>
                       <CTableRow>
                         <CTableHeaderCell scope="col">Sl.No</CTableHeaderCell>
-                        <CTableHeaderCell scope="col">Ticket Name</CTableHeaderCell>
                         <CTableHeaderCell scope="col">Date</CTableHeaderCell>
                         <CTableHeaderCell scope="col">Time</CTableHeaderCell>
-                        <CTableHeaderCell scope="col">Notification Message</CTableHeaderCell>
-                        <CTableHeaderCell scope="col">Groups</CTableHeaderCell>
-                        <CTableHeaderCell scope="col">Rule Name</CTableHeaderCell>
-                        {/* <CTableHeaderCell scope="col">Message</CTableHeaderCell>
-                        <CTableHeaderCell scope="col">Extracted json</CTableHeaderCell>
-                        <CTableHeaderCell scope="col">Actual json</CTableHeaderCell> */}
+                        <CTableHeaderCell scope="col">Ticket</CTableHeaderCell>
+                        <CTableHeaderCell scope="col">Rule Engine</CTableHeaderCell>
+                        <CTableHeaderCell scope="col">Actual Value</CTableHeaderCell>
+                        <CTableHeaderCell scope="col">Send to User</CTableHeaderCell>
                       </CTableRow>
                     </CTableHead>
                     <CTableBody>
-                      {filteredTickets.map((ticket, index) => (
-                        <CTableRow key={index}>
-                          <CTableHeaderCell>{index + 1}</CTableHeaderCell>
-                          <CTableDataCell>{ticket.ticketname}</CTableDataCell>
-                          <CTableDataCell>{ticket.date}</CTableDataCell>
-                          <CTableDataCell>{ticket.time}</CTableDataCell>
-                          <CTableDataCell></CTableDataCell>
-                          <CTableDataCell></CTableDataCell>
-                          <CTableDataCell></CTableDataCell>
-                          {/* <CTableDataCell>{ticket.inboxMessage}</CTableDataCell>
-                          <CTableDataCell>{JSON.stringify(ticket.required_json)}</CTableDataCell>
-                          <CTableDataCell>{JSON.stringify(ticket.actual_json)}</CTableDataCell> */}
+                      {filteredTickets.length === 0 ? (
+                        <CTableRow>
+                          <CTableDataCell colSpan="7" className="text-center">No matching tickets found.</CTableDataCell>
                         </CTableRow>
-                      ))}
+                      ) : (
+                        filteredTickets.map((ticket, index) => (
+                          <CTableRow key={index}>
+                            <CTableHeaderCell>{index + 1}</CTableHeaderCell>
+                            <CTableDataCell>{ticket.date}</CTableDataCell>
+                            <CTableDataCell>{ticket.time}</CTableDataCell>
+                            <CTableDataCell>{ticket.ticket.ticketname}</CTableDataCell>
+                            <CTableDataCell>{ticket.active_trigger.trigger_name}</CTableDataCell>
+                            <CTableDataCell>{ticket.actual_value}</CTableDataCell>
+                            <CTableDataCell>
+                              {ticket.active_trigger.users_to_send.map(user => user.username).join(', ')}
+                            </CTableDataCell>
+                          </CTableRow>
+                        ))
+                      )}
                     </CTableBody>
                   </CTable>
                 </div>
                 <CRow className="justify-content-center mt-4">
-                    <CCol xs={1}>
-                      <div className='d-grid gap-2'>
-                          <CButton color="primary" type="submit" >Download</CButton>
-                      </div>
-                    </CCol>
-                  </CRow>
+                  <CCol xs={1}>
+                    <div className='d-grid gap-2'>
+                      <CButton color="primary" type="button" onClick={this.handleDownloadPDF}>
+                        Download
+                      </CButton>
+                    </div>
+                  </CCol>
+                </CRow>
               </CCardBody>
             </CCard>
           </CCol>

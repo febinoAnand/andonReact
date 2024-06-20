@@ -19,7 +19,8 @@ class Setting extends React.Component {
         this.state = {
             application_id: '',
             id: '',
-            application_name: ''
+            application_name: '',
+            token: localStorage.getItem('token') || '',
         };
     }
 
@@ -28,7 +29,12 @@ class Setting extends React.Component {
     }
 
     fetchSetting = () => {
-        axios.get(BaseURL + "pushnotification/setting/")
+        const { token } = this.state;
+        axios.get(BaseURL + "pushnotification/setting/", {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
             .then(response => {
                 if (response.data.length > 0) {
                     const { id, application_id, application_name } = response.data[0];
@@ -43,24 +49,28 @@ class Setting extends React.Component {
     }
 
     handleInputChange = (e) => {
-      this.setState({ application_id: e.target.value });
-  }
+        this.setState({ application_id: e.target.value });
+    }
 
     handleUpdateClick = () => {
-      const { id, application_id, application_name } = this.state;
-      const data = {
-          application_name: application_name,
-          application_id: application_id
-      };
-  
-      axios.put(BaseURL + "pushnotification/setting/" + id + "/", data)
-          .then(response => {
-              console.log('Update successful');
-          })
-          .catch(error => {
-              console.error('Error updating application ID:', error);
-          });
-  }
+        const { id, application_id, application_name, token } = this.state;
+        const data = {
+            application_name: application_name,
+            application_id: application_id
+        };
+
+        axios.put(BaseURL + "pushnotification/setting/" + id + "/", data, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+            .then(response => {
+                console.log('Update successful');
+            })
+            .catch(error => {
+                console.error('Error updating application ID:', error);
+            });
+    }
 
     render() {
         const { application_id } = this.state;

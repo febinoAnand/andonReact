@@ -8,11 +8,11 @@ const Typography = React.lazy(() => import('./views/theme/typography/Typography'
 const Test = React.lazy(() => import('./views/test/Test'))
 
 //Events
-const EventMap = React.lazy(() => import ('./views/base/events/EventMap'))
-const EventGroup = React.lazy(() => import ('./views/base/events/EventGroup'))
-const Indicator = React.lazy(() => import('./views/base/events/EventIndicator'))
-const Button = React.lazy(() => import('./views/base/events/EventButton'))
-const ProblemCode = React.lazy(() => import('./views/base/events/EventProblemcode'))
+// const EventMap = React.lazy(() => import ('./views/base/events/EventMap'))
+// const EventGroup = React.lazy(() => import ('./views/base/events/EventGroup'))
+// const Indicator = React.lazy(() => import('./views/base/events/EventIndicator'))
+// const Button = React.lazy(() => import('./views/base/events/EventButton'))
+// const ProblemCode = React.lazy(() => import('./views/base/events/EventProblemcode'))
 
 //EmailTracking
 const dashboard = React.lazy(() => import('./views/base/emailtracking/dashboard'))
@@ -35,13 +35,13 @@ const SendReports = React.lazy(() => import('./views/base/smsgateway/sendreport'
 const Settings = React.lazy(() => import('./views/base/smsgateway/settings'))
 
 //datas
-const HMIRaw = React.lazy(() => import('./views/base/data/HMIRaw_function'))
-const ActiveProblem = React.lazy(() => import('./views/base/data/ActiveProblem'))
-const ProblemData = React.lazy(() => import('./views/base/data/ProblemData'))
+// const HMIRaw = React.lazy(() => import('./views/base/data/HMIRaw_function'))
+// const ActiveProblem = React.lazy(() => import('./views/base/data/ActiveProblem'))
+// const ProblemData = React.lazy(() => import('./views/base/data/ProblemData'))
 
 //config
-const UART = React.lazy(() => import('./views/base/configuration/UART'))
-const MQTT = React.lazy(() => import('./views/base/configuration/MQTT'))
+// const UART = React.lazy(() => import('./views/base/configuration/UART'))
+// const MQTT = React.lazy(() => import('./views/base/configuration/MQTT'))
 
 //details
 const HMIDetails = React.lazy(() => import('./views/base/details/HMIDetails'))
@@ -102,6 +102,9 @@ const Toasts = React.lazy(() => import('./views/notifications/toasts/Toasts'))
 
 const Widgets = React.lazy(() => import('./views/widgets/Widgets'))
 
+//MAin Setting
+const Settingss = React.lazy(() => import('./views/base/setting/settings'))
+
 const routes = [
   { path: '/', exact: true, name: 'Home' },
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
@@ -110,11 +113,11 @@ const routes = [
   
   { path: '/temp/test', name: 'Test', element: Test }, //test
 
-  { path: '/event/eventgroup', name: 'EventGroup', element: EventGroup}, //Event
-  { path: '/event/eventmap', name: 'EventMap', element: EventMap}, //Event
-  { path: '/event/indicator', name: 'Indicator', element: Indicator}, //Event
-  { path: '/event/button', name: 'Button', element: Button}, //Event
-  { path: '/event/problemcode', name: 'ProblemCode', element: ProblemCode}, //Event
+  // { path: '/event/eventgroup', name: 'EventGroup', element: EventGroup}, //Event
+  // { path: '/event/eventmap', name: 'EventMap', element: EventMap}, //Event
+  // { path: '/event/indicator', name: 'Indicator', element: Indicator}, //Event
+  // { path: '/event/button', name: 'Button', element: Button}, //Event
+  // { path: '/event/problemcode', name: 'ProblemCode', element: ProblemCode}, //Event
 
   { path: '/emailtracking/dashboard', name: 'EmailTracking / Dashboard', element: dashboard}, //EmailTracking
   { path: '/emailtracking/emailtable', name: 'EmailTracking / Inbox', element: EmailTable}, //EmailTracking
@@ -123,7 +126,7 @@ const routes = [
   { path: '/emailtracking/emailsubpage', name: 'EmailSubpage', element: EmailSubpage}, //EmailTracking
   { path: '/emailtracking/parameter', name: 'EmailTracking / Create Fields', element: Parameter}, //EmailTracking
   { path: '/emailtracking/trigger', name: 'EmailTracking / Rules Engine', element: Trigger}, //EmailTracking
-  { path: '/emailtracking/ticketreport', name: 'EmailTracking / TicketReport', element: TicketReport}, //EmailTracking
+  { path: '/emailtracking/ticketreport', name: 'EmailTracking / Report', element: TicketReport}, //EmailTracking
   { path: '/emailtracking/ticket', name: 'EmailTracking / Ticket', element: Ticket}, //EmailTracking
 
   { path: '/pushnotification/sendreport', name: 'Actions / Notifications / Send Report', element: SendReport}, //PushNotification
@@ -133,22 +136,24 @@ const routes = [
   { path: '/smsgateway/sendreport', name: 'Actions / SMS Gateway / Send Report', element: SendReports}, //SMSGateway
   { path: '/smsgateway/settings', name: 'Actions / SMS Gateway / Settings', element: Settings}, //SMSGateway
 
-  { path: '/data/activeproblem', name: 'ActiveProblem', element: ActiveProblem}, //data
-  { path: '/data/problemdata', name: 'ProblemData', element: ProblemData}, //data
-  { path: '/data/devraw', name: 'HMIRaw', element: HMIRaw}, //data
+  // { path: '/data/activeproblem', name: 'ActiveProblem', element: ActiveProblem}, //data
+  // { path: '/data/problemdata', name: 'ProblemData', element: ProblemData}, //data
+  // { path: '/data/devraw', name: 'HMIRaw', element: HMIRaw}, //data
 
   { path: '/details/machinedetails', name: 'Machine Details', element: MachineDetails}, //details
   { path: '/details/devdetails', name: 'HMI Device', element: HMIDetails}, //details
   { path: '/details/unregister', name: 'Unregistered Device', element: UnregisteredDevices}, //details
   { path: '/details/rfid', name: 'RFID', element: RFID}, //details
 
-  { path: '/users/users', name: 'Users', element: Users}, //users
-  { path: '/users/groups', name: 'Groups', element: Groups}, //users
+  { path: '/users/users', name: 'User Management / Users', element: Users}, //users
+  { path: '/users/groups', name: 'User Management / Groups', element: Groups}, //users
   { path: '/users/usersubpage', name: 'UserSubpage', element: UserSubpage}, //users
 
 
-  { path: '/config/uart', name: 'UART', element: UART}, //config
-  { path: '/config/mqtt', name: 'MQTT', element: MQTT}, //config
+  // { path: '/config/uart', name: 'UART', element: UART}, //config
+  // { path: '/config/mqtt', name: 'MQTT', element: MQTT}, //config
+
+  { path: '/setting/settings', name: 'SETTING / Settings', element: Settingss}, //Main Setting
 
   
   { path: '/theme/typography', name: 'Typography', element: Typography },

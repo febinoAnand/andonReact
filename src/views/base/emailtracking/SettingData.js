@@ -12,6 +12,7 @@ import {
     CFormInput,
     CFormLabel,
     CRow,
+    CFormSelect
 } from '@coreui/react';
 import BaseURL from 'src/assets/contants/BaseURL';
 
@@ -27,16 +28,93 @@ class SettingData extends React.Component {
             checkinterval: '',
             checkstatus: false,
             errors: {},
-            successMessage: ''
+            successMessage: '',
+            emailList: [],
+            inputValue: '',
+            token: localStorage.getItem('token') || '',
         };
     }
 
     componentDidMount() {
         this.fetchSettings();
+        this.fetchEmailData();
     }
 
+    fetchEmailData() {
+        const { token } = this.state;
+        axios.get(BaseURL + 'emailtracking/email_ids/', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+            .then(response => {
+                const emailList = response.data;
+                this.setState({ emailList });
+            })
+            .catch(error => {
+                console.error('Error fetching email data:', error);
+                toast.error('Failed to fetch email data');
+            });
+    }
+
+    handleAdd = () => {
+        const { inputValue, token } = this.state;
+        if (inputValue.trim() !== '') {
+            const emailData = {
+                email: inputValue,
+                active: true
+            };
+            axios.post(BaseURL + "emailtracking/email_ids/", emailData, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+                .then(response => {
+                    console.log('Email added successfully:', response.data);
+                    toast.success('Email added successfully');
+                    this.fetchEmailData();
+                    this.setState({ inputValue: '' });
+                })
+                .catch(error => {
+                    console.error('Error adding email:', error);
+                    toast.error('Failed to add email');
+                });
+        } else {
+            console.warn('Input value is empty. No email added.');
+            toast.warning('Input value is empty. No email added.');
+        }
+    };
+
+    handleToggleEmail = (email) => {
+        const { token } = this.state;
+        const updatedEmail = {
+            ...email,
+            active: !email.active
+        };
+
+        axios.put(`${BaseURL}emailtracking/email_ids/${email.id}/`, updatedEmail, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+            .then(response => {
+                console.log('Email updated successfully:', response.data);
+                toast.success('Email updated successfully');
+                this.fetchEmailData();
+            })
+            .catch(error => {
+                console.error('Error updating email:', error);
+                toast.error('Failed to update email');
+            });
+    };
+
     fetchSettings() {
-        axios.get(BaseURL + 'emailtracking/setting/')
+        const { token } = this.state;
+        axios.get(BaseURL + 'emailtracking/setting/', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
             .then(response => {
                 const data = response.data[0];
                 if (data) {
@@ -59,7 +137,7 @@ class SettingData extends React.Component {
                 toast.error('Failed to fetch settings');
             });
     }
-    
+
     handleChange = (e) => {
         const { name, value } = e.target;
         this.setState({
@@ -73,37 +151,33 @@ class SettingData extends React.Component {
         this.setState({
             [name]: newValue
         });
-    };    
-      
+    };
+
     handleSubmit = (e) => {
         e.preventDefault();
-        const errors = this.validate();
-        if (Object.keys(errors).length === 0) {
-            console.log('Submitted data:', this.state);
-    
-            const { id, host, port, username, password, checkinterval, checkstatus } = this.state;
-            const data = {
-                id,
-                host,
-                port: parseInt(port),
-                username,
-                password,
-                checkinterval: checkinterval !== '' ? parseInt(checkinterval) : null,
-                checkstatus,
-            };
-    
-            axios.put(`${BaseURL}emailtracking/setting/${id}/`, data)
-            .then(() => {
-                this.setState({ successMessage: 'Settings updated successfully', errors: {} });
-            })
-            .catch(error => {
-                console.error('Error updating settings:', error);
-                toast.error('Failed to update settings');
-            });
-        } else {
-            this.setState({ errors });
-            console.log('Validation errors:', errors);
-        }
+        const { id, host, port, username, password, checkinterval, checkstatus, token } = this.state;
+        const data = {
+            id,
+            host,
+            port: parseInt(port),
+            username,
+            password,
+            checkinterval: checkinterval !== '' ? parseInt(checkinterval) : null,
+            checkstatus,
+        };
+
+        axios.put(`${BaseURL}emailtracking/setting/${id}/`, data, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+        .then(() => {
+            this.setState({ successMessage: 'Settings updated successfully', errors: {} });
+        })
+        .catch(error => {
+            console.error('Error updating settings:', error);
+            toast.error('Failed to update settings');
+        });
     };
 
     validate = () => {
@@ -136,12 +210,14 @@ class SettingData extends React.Component {
         if (checkinterval !== '' && (isNaN(checkinterval) || checkinterval < 0 || checkinterval > 3600)) {
             errors.checkinterval = 'Check Interval must be a number between 0 to 3600';
         }
-    
+
         return errors;
-    };    
+    };
 
     render() {
-        const { host, port, username, password, checkinterval, checkstatus, errors, successMessage } = this.state;
+        const { host, port, username, password, checkinterval, checkstatus, errors, successMessage, inputValue, emailList } = this.state;
+
+        const selectedEmails = emailList.filter(emailObj => emailObj.active).map(emailObj => emailObj.email);
 
         return (
             <>
@@ -157,7 +233,7 @@ class SettingData extends React.Component {
                                 <strong>SMTP Settings</strong>
                             </CCardHeader>
                             <CCardBody>
-                                <CForm onSubmit={this.handleSubmit}>
+                                <CForm>
                                     <CRow className="mb-3">
                                         <CFormLabel htmlFor="host" className="col-sm-2 col-form-label">Host</CFormLabel>
                                         <CCol sm={10}>
@@ -191,7 +267,7 @@ class SettingData extends React.Component {
                                         <CCol sm={10}>
                                         <CFormCheck
                                             type="radio"
-                                            name="checkStatus"
+                                            name="checkstatus"
                                             id="gridRadios1"
                                             value="true"
                                             label="Enable"
@@ -200,7 +276,7 @@ class SettingData extends React.Component {
                                         />
                                         <CFormCheck
                                             type="radio"
-                                            name="checkStatus"
+                                            name="checkstatus"
                                             id="gridRadios2"
                                             value="false"
                                             label="Disable"
@@ -212,13 +288,32 @@ class SettingData extends React.Component {
                                     <CRow className="mb-3">
                                         <CFormLabel htmlFor="checkInterval" className="col-sm-2 col-form-label">Check Interval</CFormLabel>
                                         <CCol sm={10}>
-                                            <CFormInput type="text" id="checkInterval" name="checkInterval" value={checkinterval} onChange={this.handleChange} />
+                                            <CFormInput type="text" id="checkInterval" name="checkinterval" value={checkinterval} onChange={this.handleChange} />
                                             {errors.checkinterval && (<div className="text-danger">{errors.checkinterval}</div>)}
                                         </CCol>
-                                    </CRow><br />
+                                    </CRow>
+                                    <CRow className="mb-3">
+                                        <CFormLabel htmlFor="userList" className="col-sm-2 col-form-label">From E-mail</CFormLabel>
+                                        <CCol md={6}>
+                                            <CFormSelect id="userList" name="userList" value={selectedEmails} multiple>
+                                                {emailList.map((emailObj, index) => (
+                                                    <option key={index} value={emailObj.email} onClick={() => this.handleToggleEmail(emailObj)}>
+                                                        {emailObj.email}
+                                                    </option>
+                                                ))}
+                                            </CFormSelect>
+                                        </CCol>
+                                        <CCol sm={4}>
+                                            <CFormInput type="text" id="input" name="inputValue" value={inputValue} onChange={this.handleChange} />
+                                            <CCol sm={12} className="mt-3 d-flex justify-content-end">
+                                                <CButton color="primary" type="button" onClick={this.handleAdd}>Add</CButton>
+                                            </CCol>
+                                        </CCol>
+                                    </CRow>
+                                    <br />
                                     <CRow className="justify-content-center">
                                         <CCol md="auto">
-                                            <CButton color="primary" type="submit">Update</CButton>
+                                            <CButton color="primary" type="submit" onClick={this.handleSubmit}>Update</CButton>
                                         </CCol>
                                     </CRow>
                                 </CForm>
